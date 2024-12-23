@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider, useQuery } from "react-query";
+import { useUserState, signInWithGoogle, signOut } from './utilities/firebase';
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import EditForm from './EditForm.jsx';
 
 const terms = {
     Fall: "Fall",
@@ -11,7 +14,7 @@ const terms = {
 
 const meetsPat = /^ *((?:M|Tu|W|Th|F)+) +(\d\d?):(\d\d) *[ -] *(\d\d?):(\d\d) *$/;
 
-const timeParts = meets => {
+export const timeParts = meets => {
     const [match, days, hh1, mm1, hh2, mm2] = meetsPat.exec(meets) || [];
     return !match ? {} : {
         days,
@@ -74,18 +77,34 @@ const toggle = (x, lst) => (
 
 const Banner = ({ title }) => <h1 className="m-4">{title}</h1>;
 
+const SignInButton = () => (
+    <button className="btn btn-secondary btn-sm" onClick={signInWithGoogle}>
+        Sign In
+    </button>
+);
+
+const SignOutButton = () => (
+    <button className="btn btn-secondary btn-sm" onClick={signOut}>
+        Sign Out
+    </button>
+);
+
 const Course = ({ course, selected, setSelected }) => {
     const isSelected = selected.includes(course);
     const isDisabled = !isSelected && hasConflict(course, selected);
+    const [user] = useUserState();
 
     const style = {
         backgroundColor: isDisabled ? 'lightgrey' : isSelected ? 'lightgreen' : 'white'
     };
 
+    const navigate = useNavigate();
+
     return (
         <div className="card m-1 p-2"
-             style={style}
-             onClick={isDisabled ? null : () => setSelected(toggle(course, selected))}>
+                 style={style}
+                 onClick={isDisabled ? null : () => setSelected(toggle(course, selected))}
+                 onDoubleClick={!user ? null : () => navigate('/edit', { state: course })}>
             <div className="card-body">
                 <div className="card-title">{getCourseTerm(course)} CS {getCourseNumber(course)}</div>
                 <div className="card-text">{course.title}</div>
@@ -111,24 +130,30 @@ const TermButton = ({ term, setTerm, checked }) => (
     </>
 );
 
-const TermSelector = ({ term, setTerm }) => (
-    <div className="btn-group">
-        {Object.values(terms).map((value) => (
-            <TermButton
-                key={value}
-                term={value}
-                setTerm={setTerm}
-                checked={value === term}
-            />
-        ))}
-    </div>
-);
+const TermSelector = ({ term, setTerm }) => {
+    const [user] = useUserState();
+
+    return (
+        <div className="btn-toolbar justify-content-between">
+            <div className="btn-group">
+                {Object.values(terms).map(value => (
+                    <TermButton key={value} term={value} setTerm={setTerm} checked={value === term} />
+                ))}
+            </div>
+            {user ? <SignOutButton /> : <SignInButton />}
+        </div>
+    );
+};
 
 const CourseList = ({ courses }) => {
-    const [term, setTerm] = useState("Fall");
+    const [term, setTerm] = useState('Fall');
     const [selected, setSelected] = useState([]);
 
-    const termCourses = Object.values(courses).filter(course => course.term === term);
+    if (selected.some(course => course !== courses[course.id])) {
+        setSelected([]);
+    };
+
+    const termCourses = Object.values(courses).filter(course => term === getCourseTerm(course));
 
     return (
         <>
@@ -154,7 +179,12 @@ const Main = () => {
     return (
         <div className="container">
             <Banner title={data.title} />
-            <CourseList courses={data.courses} />
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<CourseList courses={data.courses} />} />
+                    <Route path="/edit" element={<EditForm />} />
+                </Routes>
+            </BrowserRouter>
         </div>
     );
 };

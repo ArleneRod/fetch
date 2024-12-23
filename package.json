@@ -11,10 +11,14 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@react-query-firebase/database": "^1.0.0-dev.2",
     "bootstrap": "^5.3.3",
+    "firebase": "^9.23.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "react-query": "^3.39.3"
+    "react-firebase-hooks": "^5.1.1",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^7.1.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
