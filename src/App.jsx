@@ -148,11 +148,6 @@ const TermSelector = ({ term, setTerm }) => {
 const CourseList = ({ courses }) => {
     const [term, setTerm] = useState('Fall');
     const [selected, setSelected] = useState([]);
-
-    if (selected.some(course => course !== courses[course.id])) {
-        setSelected([]);
-    };
-
     const termCourses = Object.values(courses).filter(course => term === getCourseTerm(course));
 
     return (
@@ -160,7 +155,9 @@ const CourseList = ({ courses }) => {
             <TermSelector term={term} setTerm={setTerm} />
             <div className="course-list">
                 {termCourses.map(course =>
-                    <Course key={course.id} course={course} selected={selected} setSelected={setSelected} />
+                    <Course key={course.id} course={course}
+                        selected={selected} setSelected={setSelected}
+                    />
                 )}
             </div>
         </>

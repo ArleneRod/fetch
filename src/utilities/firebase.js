@@ -16,7 +16,6 @@ const firebaseConfig = {
     measurementId: "G-2V548284RJ"
 };
 
-// Initialize Firebase
 const firebase = initializeApp(firebaseConfig);
 export const database = getDatabase(firebase);
 
